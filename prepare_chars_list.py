@@ -5,6 +5,7 @@ outfd=open('charslist.py', encoding='utf-8', mode='w')
 
 process=0
 print('#!/usr/bin/python3', file=outfd)
+print('grand_chars_list = [', file=outfd)
 for line in fd:
     if line.startswith("### CHARS_START"):
         process = 1
@@ -21,4 +22,5 @@ for line in fd:
     incodes,outcodes,state,devna = line[6:].split('|')
     outcodes = outcodes.strip().split(',')
     outcodes = "".join([f'\\u{i}' for i in outcodes])
-    print (f'[ "{inchars}", "{outcodes}", {state.strip()} ], # {devna.strip()}', file=outfd)
+    print (f'  [ "{inchars}", "{outcodes}", "{state.strip()}" ], # {devna.strip()}', file=outfd)
+print(']', file=outfd)
