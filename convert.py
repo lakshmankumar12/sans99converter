@@ -1,71 +1,142 @@
 #!/usr/bin/python
 
+import sys
 from enum import Enum
 import argparse
 
-from charslist import grand_chars_list
+from charslist import charslist
 
-class States(Enum):
-    S_EMP,
-    S_VWL,
-    S_VWLMOD2,
-    S_HLFMORE,
-    S_PLNCONS
-    S_CONMOD1,
-    S_CONMOD2,
-    S_IWAIT,
-    S_HLFMORE_AND_I,
-
-class LetterTypes(Enum):
-    VWL,
-    MOD1,
-    MOD2,
-    MOD3,
-    SINC,
-    CMBC,
-    HLFC,
-    VWLC,
-    INDP,
-    SYMI,
-    SYMR,
-    SPECIAL1,
+E_MODIFIER = '\u093f'
+HALF_MODIFIER = '\u094d'
+HALF_RA = '\u0930' + HALF_MODIFIER
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Sanskrit99 to Unicode Converter')
-    parser.add_argument("-i", "--infile", help="input file")
-    parser.add_argument("-o", "--outfile", help="output file")
+    parser.add_argument("-i", "--infile", help="input file", default="")
+    parser.add_argument("-o", "--outfile", help="output file", default="")
     cmd_options = parser.parse_args()
-    return cmd_options
 
-def get_char_from_file(infd):
-    while True:
-        char = infd.read(1)
-        if not char:
-            break
-        yield ord(char)
+    infd = sys.stdin
+    outfd = sys.stdout
+    if cmd_options.infile != "":
+        infd = open(cmd_options.infile, 'r', encoding='utf-8')
+    if cmd_options.outfile != "":
+        outfd = open(cmd_options.outfile, 'w', encoding='utf-8')
 
-def convert(infd, outfd, charlist):
-    curr_in_buffer = ""
-    for c in get_char_from_file(infd)
-        if len(curr_in_buffer) < 3:
-            curr_in_buffer += c
+    return infd, outfd
+
+def is_consonant(c):
+    ## plain consonant between क and ह
+    return '\u0915' <= c <= '\u0939'
+
+def is_vowel_modifier(c):
+    ## between ा and ौ
+    return '\u093e' <= c <= '\u094c'
+
+def convert_current_buffer(buf):
+    for i in range(len(buf),0,-1):
+        inchar = buf[:i]
+        #print (f"Evaluating inchar: {inchar}, i:{i}")
+        if inchar in charslist:
+            #print (f"Got match: {charslist[inchar]}. Left:{buf[i:]}")
+            return charslist[inchar], buf[i:]
+    ## no match. Just remove last and give as is
+    return buf[0], buf[1:]
+
+def work_on_ematra(instr):
+    ## work on the damn i's.
+    ##   To match: i (consonant,HALF_MODIFIER)* consonant
+    ##   To replace: (consonant,HALF_MODIFIER)* consonant E_MODIFIER
+    outstr = ""
+    state = "INIT"
+    curr_consonant = ""
+    for c in instr:
+        if state == "INIT" and c != 'i':
+            outstr += c
+        elif state == "INIT":
+            ## c==i
+            state = "I"
+            curr_consonant = ""
+        elif state == "I":
+            if is_consonant(c):
+                state = "I_AND_CONS"
+                curr_consonant = c
+            else:
+                ## error. keep i in and move on.
+                outstr += E_MODIFIER
+                state = "INIT"
+        else:
+            ## state == "I_AND_CONS"
+            if c == HALF_MODIFIER:
+                outstr += curr_consonant + c
+                state = "I"
+            else:
+                outstr += curr_consonant + E_MODIFIER
+                ## mind you the c can be another i!
+                if c != 'i':
+                    outstr += c
+                    state = "INIT"
+                else:
+                    state = "I"
+    return outstr
+
+def work_on_Rs(instr):
+    ## work on the damn i's.
+    ##   To match:   (consonant,HALF_MODIFIER)* consonant (VOWELIZER)? R
+    ##   To replace: HALF_RA, HALF_MODIFIER, (consonant,HALF_MODIFIER)* consonant (VOWELIZER)
+    outstr = ""
+    state = "INIT"
+    curr_capture = ""
+    for c in instr:
+        if c != "R":
+            outstr += c
             continue
-        s99char = None
-        for i in [3,2,1]:
-            s99char,i = charlist.get(curr_in_buffer, None)
-            if s99char is not None:
-                break
-        if s99char is None:
-            print (f"Error: No match for {curr_in_buffer}")
-            exit(1)
-        curr_in_buffer = curr_in_buffer[i:]
-        process_s99char(s99char)
+        outstr, curr_capture = outstr[:-1], outstr[-1]
+        if is_vowel_modifier(curr_capture):
+            outstr, lastc = outstr[:-1], outstr[-1]
+            curr_capture = lastc + curr_capture
+        while True:
+            outstr, lastc = outstr[:-1], outstr[-1]
+            if lastc == HALF_MODIFIER:
+                curr_capture = lastc + curr_capture
+                outstr, lastc = outstr[:-1], outstr[-1]
+                curr_capture = lastc + curr_capture
+                continue
+            ## put the HALF_RA here
+            outstr += lastc + HALF_RA + curr_capture
+            break
+        curr_capture = ""
+    return outstr
+
+def convert(instr):
+    ## first convert all chars in order
+    outstr = ""
+    currbuf = ""
+    for c in instr:
+        currbuf += c
+        #print(f"currbuf: {currbuf}, char: {c}")
+        if len(currbuf) < 3:
+            continue
+        outchar, currbuf = convert_current_buffer(currbuf)
+        outstr += outchar
+        #print(f"outstr: {outstr}")
+    while currbuf:
+        outchar, currbuf = convert_current_buffer(currbuf)
+        outstr += outchar
+
+    outstr = outstr.replace('¡', 'R\u0902')
+
+    outstr = work_on_ematra(outstr)
+    outstr = work_on_Rs(outstr)
+
+    return outstr
+
+def main():
+    infd, outfd = parse_args()
+    instr = infd.read()
+    outstr = convert(instr)
+    outfd.write(outstr)
 
 
-def process_s99char(inchar):
-
-
-−
-
-
+main()
 

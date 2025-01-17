@@ -20,7 +20,9 @@
  *   | 002a           | 0926,094d,092f               | CMBC             | द्य
  +   | 002b           | 0930                         | SINC             | र
  ,   | 002c           | 0964                         | INDP             | ।
+ -   | 002d           | 092d                         | SINC             | भ
  .   | 002e           | 0965                         | INDP             | ॥
+ /&  | 002f,0026      | 0943,0952                    | MOD2,MOD3        |
  /   | 002f           | 0952                         | MOD3             |
  0   | 0030           | 0966                         | INDP             | ०
  1   | 0031           | 0967                         | INDP             | १
@@ -37,6 +39,8 @@
  <   | 003c           | 0902                         | MOD2             |
  =   | 003d           | 093d                         | INDP             | ऽ
  >   | 003e           | 0903                         | MOD2             | ः
+ ?E  | 003f,0045      | 0948,0951                    | MOD2,MOD3        |
+ ?>  | 003f,003e      | 0903,0951                    | MOD2,MOD3        |
  ?   | 003f           | 0951                         | MOD3             |
  @e  | 0040,0065      | 0910                         | VWL              | ऐ
  @   | 0040           | 090f                         | VWL              | ए
@@ -225,6 +229,7 @@
  —   | 2014           | 0902                         | MOD2             |
  £   | 00a3           | 0945                         | MOD1             |
  œ   | 0153           | 094d                         | MOD1             |
+ š   | 0161           | 1cda                         | MOD2             | 
 ### CHARS_END
 
 ```
@@ -232,8 +237,11 @@
 
 
 # reference links
+
+key-map and layout:
 https://www.oah.in/Sanskrit/i99help/index.html?sanskrit_font.htm
 
+online tool:
 https://tounicode.blogspot.com/p/sanskrit-99-to-unicode-converter-18.html
 
 js-code: https://unicodefont.in/assets/tool-js/Sanskrit99_to_Unicode.js
