@@ -84,6 +84,9 @@ def work_on_ematra(instr):
             if is_consonant(c):
                 state = "I_AND_CONS"
                 curr_consonant = c
+            elif is_modifier3(c):
+                ## accept this and be in same state
+                outstr += c
             else:
                 ## error. keep i in and move on.
                 outstr += E_MODIFIER
