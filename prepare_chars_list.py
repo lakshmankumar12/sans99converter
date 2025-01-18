@@ -21,6 +21,7 @@ for line in fd:
         inchars = '\\\\'
     incodes,outcodes,_,devna = line[6:].split('|')
     outcodes = outcodes.strip().split(',')
-    outcodes = "".join([f'\\u{i}' for i in outcodes])
-    print (f'  "{inchars}": "{outcodes}", # {devna.strip()}', file=outfd)
+    outcodes_hex = "".join([f'\\u{i}' for i in outcodes])
+    outcodes_uni = "".join([chr(int(i,16)) for i in outcodes])
+    print (f'''  {'"' + inchars + '":':6s} {'"' + outcodes_hex + '",':40s}  #   {outcodes_uni}''', file=outfd)
 print('}', file=outfd)
