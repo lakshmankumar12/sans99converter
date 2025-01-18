@@ -50,6 +50,12 @@ def is_vowel_modifier(c):
     ## between ा and ौ
     return '\u093e' <= c <= '\u094c'
 
+def is_modifier2(c):
+    return c in "\u0902\u0903"
+
+def is_modifier3(c):
+    return c in "\u0951\u0952\u1cda"
+
 def convert_current_buffer(buf):
     for i in range(len(buf),0,-1):
         inchar = buf[:i]
@@ -108,16 +114,23 @@ def work_on_Rs(instr):
         if c != "R":
             outstr += c
             continue
-        outstr, curr_capture = outstr[:-1], outstr[-1]
-        if is_vowel_modifier(curr_capture):
-            outstr, lastc = outstr[:-1], outstr[-1]
+        curr_capture = ""
+        outstr, lastc = outstr[:-1], outstr[-1]
+        if is_modifier3(lastc):
             curr_capture = lastc + curr_capture
+            outstr, lastc = outstr[:-1], outstr[-1]
+        if is_modifier2(lastc):
+            curr_capture = lastc + curr_capture
+            outstr, lastc = outstr[:-1], outstr[-1]
+        if is_vowel_modifier(lastc):
+            curr_capture = lastc + curr_capture
+            outstr, lastc = outstr[:-1], outstr[-1]
         while True:
+            curr_capture = lastc + curr_capture
             outstr, lastc = outstr[:-1], outstr[-1]
             if lastc == HALF_MODIFIER:
                 curr_capture = lastc + curr_capture
                 outstr, lastc = outstr[:-1], outstr[-1]
-                curr_capture = lastc + curr_capture
                 continue
             ## put the HALF_RA here
             outstr += lastc + HALF_RA + curr_capture

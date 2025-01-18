@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python3
 
 fd=open('sans99_mapping.md', encoding='utf-8')
 outfd=open('charslist.py', encoding='utf-8', mode='w')
