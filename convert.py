@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import sys
-from enum import Enum
 import argparse
 import logging
 
