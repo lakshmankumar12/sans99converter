@@ -19,7 +19,7 @@ for line in fd:
         inchars = '\\"'
     elif inchars == '\\':
         inchars = '\\\\'
-    incodes,outcodes,_,devna = line[6:].split('|')
+    incodes,outcodes,_ = line[6:].split('|')
     outcodes = outcodes.strip().split(',')
     outcodes_hex = "".join([f'\\u{i}' for i in outcodes])
     outcodes_uni = "".join([chr(int(i,16)) for i in outcodes])
