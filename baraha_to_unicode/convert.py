@@ -94,11 +94,11 @@ def work_on_ematra(instr):
 
 def convert(instr):
 
-    ## dont get what this is for.
+    ## the matras for the various -nga chars should come post the -nga char
     instr = re.sub(r'([ÆðÇÑÒÓÔÕÔÕÖ×ØÙÚÛÜãäåæç]*)¡',r'¡\1', instr)
     ## remove spaces after the E-matra
     instr = re.sub(r'([ËÌÍÎ])(\s+)',r'\1', instr)
-    ## remove spaces before the E-matra
+    ## remove spaces before the matras
     instr = re.sub(r'\s+([ÅÆðÇÈ¡ÉÊÏÐÑÒÓÔÕÔÕÖ×ØÙÚÛÜãäåæç])', r'\1', instr)
 
     for lhs,rhs in charslist:
