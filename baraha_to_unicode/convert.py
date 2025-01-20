@@ -12,7 +12,7 @@ CONSONANTS_CLASS=r'[\u0915-\u0939\u0958-\u095f]'
 MATRAS_CLASS=r'[\u093e-\u094d]'
 CAV_CLASS=r'[\u0901-\u0903]'  ## chandrabind+anuswara+visarga
 SWARA_CLASS=r'[\u0951\u0952\u1cda]'
-MATRAS_CAV_CLASS = MATRAS_CLASS + CAV_CLASS
+MATRAS_CAV_CLASS = r'[\u093e-\u094d\u0901-\u0903]'
 
 try:
     from charslist import charslist
@@ -118,8 +118,12 @@ def convert(instr):
     instr = re.sub(r'इïं', "ईं", instr)
     instr = re.sub(r'इï', "ई", instr)
 
+    logging.debug("instr before r-conversion: %s", instr)
+
     ## put the ï before the consonant and its optional matras/cavs
     instr = re.sub(r''.join((r'(',CONSONANTS_CLASS,r')(',MATRAS_CAV_CLASS,r'*)ï')), r'ï\1\2' , instr)
+
+    logging.debug("instr after bringing r before its consonant: %s", instr)
     ## put the ï before the half-consonants
     instr = re.sub(r''.join((r'((',CONSONANTS_CLASS,HALF_MODIFIER,r')+)ï')), r'ï\1' , instr)
     ## sub ï with half-r
