@@ -8,6 +8,12 @@ import re
 E_MODIFIER = '\u093f'
 HALF_MODIFIER = '\u094d'
 
+CONSONANTS_CLASS=r'[\u0915-\u0939\u0958-\u095f]'
+MATRAS_CLASS=r'[\u093e-\u094d]'
+CAV_CLASS=r'[\u0901-\u0903]'  ## chandrabind+anuswara+visarga
+SWARA_CLASS=r'[\u0951\u0952\u1cda]'
+MATRAS_CAV_CLASS = MATRAS_CLASS + CAV_CLASS
+
 try:
     from charslist import charslist
 except ImportError:
@@ -85,7 +91,7 @@ def work_on_ematra(instr):
             else:
                 outstr += curr_consonant + E_MODIFIER
                 ## mind you the c can be another i!
-                if c != 'i':
+                if c != 'Ë':
                     outstr += c
                     state = "INIT"
                 else:
@@ -112,16 +118,19 @@ def convert(instr):
     instr = re.sub(r'इïं', "ईं", instr)
     instr = re.sub(r'इï', "ई", instr)
 
-    instr = re.sub(r'([कखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसहक़ख़ग़ज़ड़ढ़फ़य़ऱऩ])([ा\ि\ी\ु\ू\ृ\े\ै\ो\ौ\ं\ँ]*)ï', r'ï\1\2', instr)
-    instr = re.sub(r'(([कखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसहक़ख़ग़ज़ड़ढ़फ़य़ऱऩ]्)+)ï', r'ï\1', instr)
+    ## put the ï before the consonant and its optional matras/cavs
+    instr = re.sub(r''.join((r'(',CONSONANTS_CLASS,r')(',MATRAS_CAV_CLASS,r'*)ï')), r'ï\1\2' , instr)
+    ## put the ï before the half-consonants
+    instr = re.sub(r''.join((r'((',CONSONANTS_CLASS,HALF_MODIFIER,r')+)ï')), r'ï\1' , instr)
+    ## sub ï with half-r
     instr = re.sub(r'ï', "र्", instr)
 
-    # remove spaces before matra
-    instr = re.sub(r'\s+([ऽ\्\ा\ी\ु\ू\ृ\े\ै\ो\ौ\ं\ँ\ः])', r'\1', instr)
-    # chandrabindu after matra
-    instr = re.sub(r'([ंँ])([ा\ि\ी\ु\ू\ृ\े\ै\ो\ौ])', r'\2\1', instr)
-    # double matra removal
-    instr = re.sub(r'([ा\ि\ी\ु\ू\ृ\े\ै\ो\ौ\ं\ँ])([ा\ि\ी\ु\ू\ृ\े\ै\ो\ौ])', r'\1', instr)
+    ## remove spaces before MATRAS_CAV_CLASS symbols
+    instr = re.sub(r''.join((r'\s+(',MATRAS_CAV_CLASS,')')),r'\1', instr)
+    ## CAV_CLASS should come after MATRAS_CLASS
+    instr = re.sub(r''.join((r'(',CAV_CLASS,r')(',MATRAS_CLASS,r')')),r'\2\1', instr)
+    ## SWARA_CLASS should come after MATRAS_CLASS, CAV_CLASS
+    instr = re.sub(r''.join((r'(',SWARA_CLASS,r')(',MATRAS_CLASS,r')?(',CAV_CLASS,r')?')),r'\2\3\1', instr)
 
     return instr
 
