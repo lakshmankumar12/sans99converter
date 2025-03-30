@@ -127,6 +127,12 @@ def work_on_Rs(instr):
         if is_vowel_modifier(lastc):
             curr_capture = lastc + curr_capture
             outstr, lastc = outstr[:-1], outstr[-1]
+        ## sometimes, the R is not after a consonant,
+        ## but after a HALF_MODIFIER. In such a case
+        ## just bring it in front of that
+        if lastc == HALF_MODIFIER:
+            curr_capture = lastc + curr_capture
+            outstr, lastc = outstr[:-1], outstr[-1]
         while True:
             curr_capture = lastc + curr_capture
             outstr, lastc = outstr[:-1], outstr[-1]
