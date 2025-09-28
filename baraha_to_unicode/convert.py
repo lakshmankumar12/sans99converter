@@ -31,6 +31,8 @@ def is_vowel_modifier(c):
 def is_modifier2(c):
     return c in "\u0902\u0903"
 
+def is_modifier3(c):
+    return c in "\u0951\u0952\u1cda"
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Sanskrit99 to Unicode Converter')
@@ -38,6 +40,7 @@ def parse_args():
     parser.add_argument("-o", "--outfile", help="output file", default="")
     parser.add_argument("-d", "--debug", help="turn on debug prints", action="store_true")
     parser.add_argument("-l", "--logfile", help="debug log file", default="")
+    parser.add_argument("-N", "--includenumbers", help="skip-numbers", action="store_true")
     cmd_options = parser.parse_args()
 
     infd = sys.stdin
@@ -55,6 +58,13 @@ def parse_args():
         logging.basicConfig(level=logging.DEBUG,
               format='%(asctime)s - %(levelname)s - %(message)s',
               handlers=handlers)
+
+    global charslist
+    if not cmd_options.includenumbers:
+        numbers = { "0", "1", "2", "3", "4",
+                    "5", "6", "7", "8", "9", }
+        filtered_charlist = [ (i,j) for (i,j) in charslist if i not in numbers ]
+        charslist = filtered_charlist
 
     return infd, outfd
 
