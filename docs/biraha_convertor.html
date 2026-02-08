@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baraha to Unicode Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .box {
+            flex: 1;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        #output {
+            background-color: #fff;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+        }
+        .buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            margin: 0 10px;
+        }
+        #convertBtn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #convertBtn:hover {
+            background-color: #45a049;
+        }
+        #clearBtn {
+            background-color: #f44336;
+            color: white;
+        }
+        #clearBtn:hover {
+            background-color: #da190b;
+        }
+        #copyBtn {
+            background-color: #2196F3;
+            color: white;
+        }
+        #copyBtn:hover {
+            background-color: #1976D2;
+        }
+        .options {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .options label {
+            display: inline;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <h1>Baraha to Unicode Converter</h1>
+
+    <div class="container">
+        <div class="box">
+            <label for="input">Baraha Font Input:</label>
+            <textarea id="input" placeholder="Paste your Baraha font text here..."></textarea>
+        </div>
+        <div class="box">
+            <label for="output">Unicode Output:</label>
+            <textarea id="output" readonly placeholder="Converted Unicode text will appear here..."></textarea>
+        </div>
+    </div>
+
+    <div class="options">
+        <input type="checkbox" id="includeNumbers">
+        <label for="includeNumbers">Convert numbers to Devanagari numerals</label>
+    </div>
+
+    <div class="buttons">
+        <button id="convertBtn">Convert</button>
+        <button id="copyBtn">Copy Output</button>
+        <button id="clearBtn">Clear</button>
+    </div>
+
+    <script>
+    // Character mapping from Baraha to Unicode
+    const fullCharslist = [
+        ["\u00fb", ""],                       // û
+        ["\u00fc", ""],                       // ü
+        ["\u00e3", "\u00e5"],                 // ã -> å
+        ["\u00c1", "\u0950"],                 // Á -> ॐ
+        ["\u00fe", "\u0951"],                 // þ -> ॑
+        ["\u00fd", "\u0952"],                 // ý -> ॒
+        ["\u00ff", "\u1cda"],                 // ÿ -> ᳚
+        ["\u00c2", "\u0930\u0941"],           // Â -> रु
+        ["\u00c3", "\u0930\u0942"],           // Ã -> रू
+        ["\u00f3\u00e8", "\ua8f3"],           // óè -> ꣳ
+        ["\u00f2", "\ua8f2"],                 // ò -> ꣲ
+        ["\u00c4\u0051", "\u0921\u093c"],     // ÄQ -> ड़
+        ["\u00c4\u0052", "\u0922\u093c"],     // ÄR -> ढ़
+        ["\u00c4\u0054", "\u095e"],           // ÄT -> फ़
+        ["\u00c4\u0065", "\u095b\u094d"],     // Äe -> ज़्
+        ["\u201a", "\u0915\u094d\u0915"],     // ‚ -> क्क
+        ["\u0192\u00a1", "\u0919\u094d\u0915"], // ƒ¡ -> ङ्क
+        ["\u201e\u00a1", "\u0919\u094d\u0916"], // „¡ -> ङ्ख
+        ["\u2026\u00a1", "\u0919\u094d\u0917"], // …¡ -> ङ्ग
+        ["\u2020\u00a1", "\u0919\u094d\u0918"], // †¡ -> ङ्घ
+        ["\u2021\u00a1", "\u0919\u094d\u0915\u094d\u0924"], // ‡¡ -> ङ्क्त
+        ["\u02c6\u00a1", "\u0919\u094d\u0919"], // ˆ¡ -> ङ्ङ
+        ["\u2030\u00a1", "\u0919\u094d\u092e"], // ‰¡ -> ङ्म
+        ["\u0160", "\u091a\u094d\u091a"],     // Š -> च्च
+        ["\u2039", "\u091c\u094d\u091c"],     // ‹ -> ज्ज
+        ["\u0152", "\u0921\u094d\u0921"],     // Œ -> ड्ड
+        ["\u008d", "\u0921\u094d\u0922"],     //  -> ड्ढ
+        ["\u017d", "\u0921\u094d\u092f"],     // Ž -> ड्य
+        ["\u008f", "\u091f\u094d\u091f"],     //  -> ट्ट
+        ["\u0090", "\u091f\u094d\u0920"],     //  -> ट्ठ
+        ["\u2022", "\u0921\u094d\u0922"],     // • -> ड्ढ
+        ["\u2013", "\u0952"],                 // – -> ॒
+        ["\u2014", "\u091f\u094d\u0920"],     // — -> ट्ठ
+        ["\u02dc", "\u0922\u094d\u0922"],     // ˜ -> ढ्ढ
+        ["\u2122", "\u0939\u0943"],           // ™ -> हृ
+        ["\u0161", "\u091f\u094d\u092f"],     // š -> ट्य
+        ["\u203a", "\u0920\u094d\u0920"],     // › -> ठ्ठ
+        ["\u0153", "\u0920\u094d\u092f"],     // œ -> ठ्य
+        ["\u009d", "\u0922\u094d\u0922"],     //  -> ढ्ढ
+        ["\u017e", "\u0922\u094d\u092f"],     // ž -> ढ्य
+        ["\u0178", "\u0926\u094d\u0930\u094d\u092f"], // Ÿ -> द्र्य
+        ["\u00a2", "\u0915\u094d\u0930"],     // ¢ -> क्र
+        ["\u00a3", "\u0915\u094d\u0924"],     // £ -> क्त
+        ["\u00a4", "\u0915\u094d\u0937\u094d"], // ¤ -> क्ष्
+        ["\u00a5", "\u091c\u094d\u091e\u094d"], // ¥ -> ज्ञ्
+        ["\u00a6", "\u0924\u094d\u0928\u094d"], // ¦ -> त्न्
+        ["\u00a7", "\u0924\u094d\u0930\u094d"], // § -> त्र्
+        ["\u00a8", "\u0924\u094d\u0924\u094d"], // ¨ -> त्त्
+        ["\u00a9", "\u0926\u094d\u092e"],     // © -> द्म
+        ["\u00aa", "\u0926\u094d\u0917"],     // ª -> द्ग
+        ["\u00ab", "\u0926\u094d\u0918"],     // « -> द्घ
+        ["\u00ac", "\u0926\u094d\u0926"],     // ¬ -> द्द
+        ["\u00ae", "\u0926\u094d\u0927"],     // ® -> द्ध
+        ["\u00af", "\u0926\u094d\u092c"],     // ¯ -> द्ब
+        ["\u00b0", "\u0926\u094d\u092d"],     // ° -> द्भ
+        ["\u00b1", "\u0926\u094d\u092f"],     // ± -> द्य
+        ["\u00b2", "\u0926\u094d\u0935"],     // ² -> द्व
+        ["\u00b3", "\u0928\u094d\u0928\u094d"], // ³ -> न्न्
+        ["\u00b4", "\u0936\u094d\u0930\u094d"], // ´ -> श्र्
+        ["\u00b5", "\u0936\u094d\u0935\u094d"], // µ -> श्व्
+        ["\u03bc", "\u0936\u094d\u0935"],     // μ -> श्व
+        ["\u00b6", "\u0936\u094d\u091a\u094d"], // ¶ -> श्च्
+        ["\u00b7", "\u0937\u094d\u091f"],     // · -> ष्ट
+        ["\u00b8", "\u0937\u094d\u0920"],     // ¸ -> ष्ठ
+        ["\u00b9", "\u0937\u094d\u091f"],     // ¹ -> ष्ट
+        ["\u00ba", "\u0939\u094d\u0923"],     // º -> ह्ण
+        ["\u00bb", "\u0939\u094d\u0928"],     // » -> ह्न
+        ["\u00bc", "\u0939\u094d\u092e"],     // ¼ -> ह्म
+        ["\u00bd", "\u0939\u094d\u092f"],     // ½ -> ह्य
+        ["\u00be", "\u0939\u094d\u0930"],     // ¾ -> ह्र
+        ["\u00bf", "\u0939\u094d\u0932"],     // ¿ -> ह्ल
+        ["\u00c0", "\u0939\u094d\u0935"],     // À -> ह्व
+        ["\u00ea", "\u094d\u0930"],           // ê -> ्र
+        ["\u00eb", "\u094d\u0930"],           // ë -> ्र
+        ["\u00ec", "\u094d\u0930"],           // ì -> ्र
+        ["\u00ed", "\u094d\u0930"],           // í -> ्र
+        ["\u0041", "\u0905"],                 // A -> अ
+        ["\u0042", "\u0911"],                 // B -> ऑ
+        ["\u0043", "\u0907"],                 // C -> इ
+        ["\u0044", "\u0908"],                 // D -> ई
+        ["\u0045", "\u0909"],                 // E -> उ
+        ["\u0046", "\u090a"],                 // F -> ऊ
+        ["\u0047", "\u090b"],                 // G -> ऋ
+        ["\u0048", "\u0960"],                 // H -> ॠ
+        ["\u004c\u00e5", "\u0910"],           // Lå -> ऐ
+        ["\u004c", "\u090f"],                 // L -> ए
+        ["\u0059", "\u0915\u094d"],           // Y -> क्
+        ["\u005a", "\u0916\u094d"],           // Z -> ख्
+        ["\u0061", "\u0917\u094d"],           // a -> ग्
+        ["\u0062", "\u0918\u094d"],           // b -> घ्
+        ["\u004d", "\u0915"],                 // M -> क
+        ["\u0058", "\u0919"],                 // X -> ङ
+        ["\u0063", "\u091a\u094d"],           // c -> च्
+        ["\u0065", "\u091c\u094d"],           // e -> ज्
+        ["\u0066", "\u091d\u094d"],           // f -> झ्
+        ["\u0067", "\u091e\u094d"],           // g -> ञ्
+        ["\u004e", "\u091b"],                 // N -> छ
+        ["\u0064", "\u091b"],                 // d -> छ
+        ["\u004f", "\u091f"],                 // O -> ट
+        ["\u0050", "\u0920"],                 // P -> ठ
+        ["\u0051", "\u0921"],                 // Q -> ड
+        ["\u0052", "\u0922"],                 // R -> ढ
+        ["\u0068", "\u0923\u094d"],           // h -> ण्
+        ["\u0069", "\u0924\u094d"],           // i -> त्
+        ["\u006a", "\u0925\u094d"],           // j -> थ्
+        ["\u006b", "\u0927\u094d"],           // k -> ध्
+        ["\u006c", "\u0928\u094d"],           // l -> न्
+        ["\u0053", "\u0926"],                 // S -> द
+        ["\u006d", "\u092a\u094d"],           // m -> प्
+        ["\u006e", "\u092b\u094d"],           // n -> फ्
+        ["\u006f", "\u092c\u094d"],           // o -> ब्
+        ["\u0070", "\u092d\u094d"],           // p -> भ्
+        ["\u0071", "\u092e\u094d"],           // q -> म्
+        ["\u0054", "\u092b"],                 // T -> फ
+        ["\u0072", "\u092f\u094d"],           // r -> य्
+        ["\u0073", "\u0932\u094d"],           // s -> ल्
+        ["\u0074", "\u0933\u094d"],           // t -> ळ्
+        ["\u0075", "\u0935\u094d"],           // u -> व्
+        ["\u0076", "\u0936\u094d"],           // v -> श्
+        ["\u0077", "\u0937\u094d"],           // w -> ष्
+        ["\u0078", "\u0938\u094d"],           // x -> स्
+        ["\u0079", "\u0939\u094d"],           // y -> ह्
+        ["\u007a", "\u0936\u094d"],           // z -> श्
+        ["\u0055", "\u0930"],                 // U -> र
+        ["\u0056", "\u0933"],                 // V -> ळ
+        ["\u0057", "\u0939"],                 // W -> ह
+        ["\u007c\u007c", "\u0965"],           // || -> ॥
+        ["\u007c", "\u0964"],                 // | -> ।
+        ["\u00c5", "\u093d"],                 // Å -> ऽ
+        ["\u00c6", "\u0901"],                 // Æ -> ँ
+        ["\u00f0", "\u0901"],                 // ð -> ँ
+        ["\u00c7", "\u0902"],                 // Ç -> ं
+        ["\u00c8", "\u0903"],                 // È -> ः
+        ["\u00c9", "\u093e"],                 // É -> ा
+        ["\u00ca", "\u093e"],                 // Ê -> ा
+        ["\u00cf", "\u0940"],                 // Ï -> ी
+        ["\u00d0", "\u0940"],                 // Ð -> ी
+        ["\u00d1", "\u0941"],                 // Ñ -> ु
+        ["\u00d2", "\u0941"],                 // Ò -> ु
+        ["\u00d3", "\u0941"],                 // Ó -> ु
+        ["\u00d4", "\u0942"],                 // Ô -> ू
+        ["\u00d5", "\u0942"],                 // Õ -> ू
+        ["\u00d6", "\u0942"],                 // Ö -> ू
+        ["\u00d7", "\u0943"],                 // × -> ृ
+        ["\u00d8", "\u0943"],                 // Ø -> ृ
+        ["\u00d9", "\u0943"],                 // Ù -> ृ
+        ["\u00da", "\u0944"],                 // Ú -> ॄ
+        ["\u00db", "\u0944"],                 // Û -> ॄ
+        ["\u00dc", "\u0944"],                 // Ü -> ॄ
+        ["\u00e3", "\u0946"],                 // ã -> ॆ
+        ["\u00e4", "\u0945"],                 // ä -> ॅ
+        ["\u00e5", "\u0947"],                 // å -> े
+        ["\u00e6", "\u0948"],                 // æ -> ै
+        ["\u00e7", "\u094d"],                 // ç -> ्
+        ["\u00e8", "\u094d"],                 // è -> ्
+        ["\u00e9", "\u094d"],                 // é -> ्
+        ["\u0060", "\u2018"],                 // ` -> '
+        ["\u094d\u093e", ""],                 // ्ा -> (empty)
+        ["\u094d\u094b", "\u0947"],           // ्ो -> े
+        ["\u094d\u094c", "\u0948"],           // ्ौ -> ै
+        ["\u0905\u094b", "\u0913"],           // अो -> ओ
+        ["\u0905\u093e", "\u0906"],           // अा -> आ
+        ["\u0906\u0948", "\u0914"],           // आै -> औ
+        ["\u0906\u0947", "\u0913"],           // आे -> ओ
+        ["\u093e\u094b", "\u094b"],           // ाो -> ो
+        ["\u093e\u0945", "\u0949"],           // ाॅ -> ॉ
+        ["\u0945\u093e", "\u0949"],           // ॅा -> ॉ
+        ["\u093e\u0947", "\u094b"],           // ाे -> ो
+        ["\u0902\u0941", "\u0941\u0902"],     // ंु -> ुं
+        ["\u0947\u0947", "\u0947"],           // ेे -> े
+        ["\u0905\u0948", "\u0905\u200d\u0948"], // अै -> अ‍ै
+        ["\u093e\u0947", "\u094b"],           // ाे -> ो
+        ["\u0905\u0947", "\u0905\u200d\u0947"], // अे -> अ‍े
+        ["\u0902\u093e", "\u093e\u0902"],     // ंा -> ां
+        ["\u0905\u0945", "\u0905\u200d\u0945"], // अॅ -> अ‍ॅ
+        ["\u093e\u0948", "\u094c"],           // ाै -> ौ
+        ["\u0948\u093e", "\u094c"],           // ैा -> ौ
+        ["\u0902\u0943", "\u0943\u0902"],     // ंृ -> ृं
+        ["\u0901\u093e", "\u093e\u0901"],     // ँा -> ाँ
+        ["\u0901\u0942", "\u0942\u0901"],     // ँू -> ूँ
+        ["\u0947\u093e", "\u094b"],           // ेा -> ो
+        ["\u0902\u0947", "\u0947\u0902"],     // ंे -> ें
+        ["\u093e\u0947\u0902", "\u094b\u0902"], // ाें -> ों
+        ["\u0945\u0902", "\u0901"],           // ॅं -> ँ
+        ["\u0902\u0945", "\u0901"],           // ंॅ -> ँ
+        ["\u0020\u0903", "\u0020\u003a"],     //  ः ->  :
+        ["\u0902\u0942", "\u0942\u0902"],     // ंू -> ूं
+        ["\u0917\u0903\u0947", "\u0917\u0947"], // गःे -> गे
+        ["\u0917\u0903\u0902", "\u0917\u0902"], // गःं -> गं
+        ["\u092f\u094d\u0901", "\u092f\u0901\u094d"], // य्ँ -> यँ्
+    ];
+
+    // Number mappings (separate so we can optionally include them)
+    const numberMappings = [
+        ["\u0030", "\u0966"],                 // 0 -> ०
+        ["\u0031", "\u0967"],                 // 1 -> १
+        ["\u0032", "\u0968"],                 // 2 -> २
+        ["\u0033", "\u0969"],                 // 3 -> ३
+        ["\u0034", "\u096a"],                 // 4 -> ४
+        ["\u0035", "\u096b"],                 // 5 -> ५
+        ["\u0036", "\u096c"],                 // 6 -> ६
+        ["\u0037", "\u096d"],                 // 7 -> ७
+        ["\u0038", "\u096e"],                 // 8 -> ८
+        ["\u0039", "\u096f"],                 // 9 -> ९
+    ];
+
+    const E_MODIFIER = '\u093f';
+    const HALF_MODIFIER = '\u094d';
+
+    const CONSONANTS_CLASS = '[\u0915-\u0939\u0958-\u095f]';
+    const MATRAS_CLASS = '[\u093e-\u094d]';
+    const CAV_CLASS = '[\u0901-\u0903]';
+    const SWARA_CLASS = '[\u0951\u0952\u1cda]';
+    const MATRAS_CAV_CLASS = '[\u093e-\u094d\u0901-\u0903]';
+
+    function isConsonant(c) {
+        return c >= '\u0915' && c <= '\u0939';
+    }
+
+    function isVowelModifier(c) {
+        return c >= '\u093e' && c <= '\u094c';
+    }
+
+    function isModifier2(c) {
+        return c === '\u0902' || c === '\u0903';
+    }
+
+    function isModifier3(c) {
+        return c === '\u0951' || c === '\u0952' || c === '\u1cda';
+    }
+
+    function workOnEmatra(instr) {
+        let outstr = "";
+        let state = "INIT";
+        let currConsonant = "";
+
+        for (const c of instr) {
+            if (state === "INIT" && c !== '\u00cb') {
+                outstr += c;
+            } else if (state === "INIT") {
+                // c === 'Ë'
+                state = "I";
+                currConsonant = "";
+            } else if (state === "I") {
+                if (isConsonant(c)) {
+                    state = "I_AND_CONS";
+                    currConsonant = c;
+                } else if (isModifier3(c)) {
+                    // accept this and be in same state
+                    outstr += c;
+                } else {
+                    // error. keep i in and move on.
+                    outstr += E_MODIFIER;
+                    state = "INIT";
+                }
+            } else {
+                // state === "I_AND_CONS"
+                if (c === HALF_MODIFIER) {
+                    outstr += currConsonant + c;
+                    state = "I";
+                } else {
+                    outstr += currConsonant + E_MODIFIER;
+                    // mind you the c can be another i!
+                    if (c !== '\u00cb') {
+                        outstr += c;
+                        state = "INIT";
+                    } else {
+                        state = "I";
+                    }
+                }
+            }
+        }
+        return outstr;
+    }
+
+    function convert(instr, includeNumbers) {
+        // Build the charslist based on options
+        let charslist = [...fullCharslist];
+        if (includeNumbers) {
+            charslist = charslist.concat(numberMappings);
+        }
+
+        // the matras for the various -nga chars should come post the -nga char
+        instr = instr.replace(/([ÆðÇÑÒÓÔÕÔÕÖ×ØÙÚÛÜãäåæç]*)¡/g, '¡$1');
+
+        // remove spaces after the E-matra
+        instr = instr.replace(/([ËÌÍÎ])(\s+)/g, '$1');
+
+        // remove spaces before the matras
+        instr = instr.replace(/\s+([ÅÆðÇÈ¡ÉÊÏÐÑÒÓÔÕÔÕÖ×ØÙÚÛÜãäåæç])/g, '$1');
+
+        // Apply character mappings
+        for (const [lhs, rhs] of charslist) {
+            instr = instr.split(lhs).join(rhs);
+        }
+
+        // converge all E matra to one
+        instr = instr.replace(/[ÌÍÎ]/g, 'Ë');
+
+        instr = workOnEmatra(instr);
+
+        instr = instr.replace(/इïं/g, "ईं");
+        instr = instr.replace(/इï/g, "ई");
+
+        // put the ï before the consonant and its optional matras/cavs
+        const regex1 = new RegExp('(' + CONSONANTS_CLASS + ')(' + MATRAS_CAV_CLASS + '*)ï', 'g');
+        instr = instr.replace(regex1, 'ï$1$2');
+
+        // put the ï before the half-consonants
+        const regex2 = new RegExp('((' + CONSONANTS_CLASS + HALF_MODIFIER + ')+)ï', 'g');
+        instr = instr.replace(regex2, 'ï$1');
+
+        // sub ï with half-r
+        instr = instr.replace(/ï/g, "र्");
+
+        // remove spaces before MATRAS_CAV_CLASS symbols
+        const regex3 = new RegExp('\\s+(' + MATRAS_CAV_CLASS + ')', 'g');
+        instr = instr.replace(regex3, '$1');
+
+        // CAV_CLASS should come after MATRAS_CLASS
+        const regex4 = new RegExp('(' + CAV_CLASS + ')(' + MATRAS_CLASS + ')', 'g');
+        instr = instr.replace(regex4, '$2$1');
+
+        // SWARA_CLASS should come after MATRAS_CLASS, CAV_CLASS
+        const regex5 = new RegExp('(' + SWARA_CLASS + ')(' + MATRAS_CLASS + ')?(' + CAV_CLASS + ')?', 'g');
+        instr = instr.replace(regex5, '$2$3$1');
+
+        return instr;
+    }
+
+    // Event handlers
+    document.getElementById('convertBtn').addEventListener('click', function() {
+        const input = document.getElementById('input').value;
+        const includeNumbers = document.getElementById('includeNumbers').checked;
+        const output = convert(input, includeNumbers);
+        document.getElementById('output').value = output;
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', function() {
+        document.getElementById('input').value = '';
+        document.getElementById('output').value = '';
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', function() {
+        const output = document.getElementById('output');
+        output.select();
+        document.execCommand('copy');
+
+        // Visual feedback
+        const btn = document.getElementById('copyBtn');
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+            btn.textContent = originalText;
+        }, 1500);
+    });
+
+    // Auto-convert on input (optional - can be enabled)
+    // document.getElementById('input').addEventListener('input', function() {
+    //     const input = this.value;
+    //     const includeNumbers = document.getElementById('includeNumbers').checked;
+    //     const output = convert(input, includeNumbers);
+    //     document.getElementById('output').value = output;
+    // });
+    </script>
+</body>
+</html>
